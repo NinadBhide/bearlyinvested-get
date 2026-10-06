@@ -1,0 +1,358 @@
+<!doctype html>
+<!--
+  get.bearlyinvested.app — smart "get the app" link.
+
+  index.html, ig.html, tt.html, yt.html and 404.html are IDENTICAL copies of this
+  file. The page reads its own path (/ig, /tt, /yt) to pick the App Store campaign,
+  so there is one source of truth. Edit index.html, then re-copy:
+    for f in ig tt yt 404; do cp index.html $f.html; done
+
+  Why flat ig.html instead of ig/index.html: GitHub Pages serves /ig straight from
+  ig.html, whereas a folder would cost a 301 (/ig → /ig/) before the redirect even
+  starts. 404.html catches /IG, /ig/, typos, etc. and still sends people to a store.
+
+  Append ?stay to any URL to see the page on a phone without being redirected.
+-->
+<html lang="en" data-state="fallback">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Get Bearly Invested</title>
+
+  <!-- Redirect runs first, before any CSS/fonts/images, so phones leave immediately. -->
+  <script>
+    (function () {
+      var APPLE_ID = '6793846431';
+      var APPLE_PROVIDER_TOKEN = '129129177';
+      // App Store campaign token per bio link. tt is deliberately untracked for now.
+      var CAMPAIGNS = { ig: 'ig-bio', yt: 'yt-bio' };
+
+      var slug = (location.pathname.split('/')[1] || '').replace(/\.html$/, '').toLowerCase();
+      var ct = CAMPAIGNS[slug];
+      var links = {
+        ios: ct
+          ? 'https://apps.apple.com/app/apple-store/id' + APPLE_ID + '?pt=' + APPLE_PROVIDER_TOKEN + '&ct=' + ct + '&mt=8'
+          : 'https://apps.apple.com/app/id' + APPLE_ID,
+        android: 'https://play.google.com/store/apps/details?id=com.bearlyinvested.app'
+      };
+
+      var ua = navigator.userAgent || '';
+      // iPadOS 13+ reports a Mac user agent; touch points give it away.
+      var isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      var isAndroid = /Android/i.test(ua);
+      var platform = isIOS ? 'ios' : isAndroid ? 'android' : 'other';
+      var stay = /[?&]stay(\b|=)/.test(location.search);
+
+      window.__bi = { links: links, platform: platform };
+      document.documentElement.setAttribute('data-platform', platform);
+
+      if (platform !== 'other' && !stay) {
+        document.documentElement.setAttribute('data-state', 'redirecting');
+        // replace() keeps this page out of history, so Back never bounces into a redirect loop.
+        location.replace(links[platform]);
+      }
+    })();
+  </script>
+
+  <meta name="description" content="Download Bearly Invested — learn how the stock market works with a daily 5-question quiz. Free on iPhone and Android." />
+  <meta name="robots" content="noindex,follow" />
+  <link rel="icon" href="/assets/icon-180.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/assets/icon-180.png" />
+
+  <meta property="og:title" content="Get Bearly Invested" />
+  <meta property="og:description" content="Learn the stock market like a game. Free on iPhone and Android." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://get.bearlyinvested.app/assets/icon-512.png" />
+  <meta property="og:site_name" content="Bearly Invested" />
+  <meta name="twitter:card" content="summary" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      color-scheme: light;
+      /* palette + scales — same tokens as bearlyinvested.app (apps/mobile/theme/tokens.js) */
+      --green: #37b24d;
+      --green-shade4: #216b2e;
+      --green-shade7: #103517;
+      --green-shade8: #0b240f;
+      --teal: #11998e;
+      --hero-green: #38ef7d;
+      --ink: #1a1a1a;
+      --white: #ffffff;
+
+      --fs-caption: 12px;
+      --fs-body: 15px;
+      --fs-lg: 18px;
+
+      --sp-xs: 4px;
+      --sp-sm: 8px;
+      --sp-md: 12px;
+      --sp-lg: 16px;
+      --sp-xl: 24px;
+      --sp-xxl: 32px;
+      --sp-xxxl: 48px;
+
+      --r-full: 9999px;
+      --badge-h: 48px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      color: var(--ink);
+      background: var(--green-shade8);
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+    img { max-width: 100%; display: block; }
+    a { text-decoration: none; }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .settle {
+      opacity: 0;
+      animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* ---------- nav ---------- */
+    header.nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--sp-md) var(--sp-xl);
+      background: var(--white);
+    }
+    .brand img { height: 17px; width: auto; }
+
+    /* ---------- hero ---------- */
+    .hero {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: linear-gradient(to right, var(--teal), var(--hero-green));
+      padding: 72px var(--sp-xl) 64px;
+      overflow: hidden;
+    }
+    .hero-inner {
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: var(--sp-xxxl);
+    }
+    .hero-copy { flex: 1 1 400px; }
+    .hero h1 {
+      font-size: 32px;
+      line-height: 1.25;
+      font-weight: 700;
+      color: var(--white);
+      margin: 0 0 var(--sp-lg);
+    }
+    .hero p.lead {
+      font-size: var(--fs-lg);
+      line-height: 1.65;
+      color: rgba(255, 255, 255, 0.92);
+      margin: 0 0 var(--sp-xxl);
+      max-width: 46ch;
+    }
+
+    /* Spinner only shows while a redirect is in flight. */
+    .spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      margin: 0 0 var(--sp-lg);
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      border-top-color: var(--white);
+      border-radius: var(--r-full);
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    [data-state="redirecting"] .spinner { display: block; }
+
+    /* ---------- official store badges ---------- */
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--sp-md);
+    }
+    .badge {
+      display: inline-flex;
+      border-radius: 9px;
+      transition: transform 0.15s ease;
+    }
+    .badge:hover { transform: translateY(-2px); }
+    .badge:focus-visible { outline: 3px solid var(--white); outline-offset: 3px; }
+    .badge-apple img { height: var(--badge-h); width: auto; }
+    /* Google's official PNG ships with transparent padding baked in (badge is
+       564×168 inside a 646×250 canvas). Scale it up and pull the padding back
+       so its visible height matches the Apple badge exactly. */
+    .badge-google { overflow: hidden; height: var(--badge-h); }
+    .badge-google img {
+      height: calc(var(--badge-h) * 250 / 168);
+      width: auto;
+      max-width: none;
+      margin: calc(var(--badge-h) * -41 / 168) calc(var(--badge-h) * -41 / 168);
+    }
+
+    /* Detected phone: its own store's badge leads. While redirecting, only that
+       badge shows (as a "tap if nothing happened" escape hatch). */
+    [data-platform="android"] .badge-google { order: -1; }
+    [data-state="redirecting"][data-platform="ios"] .badge-google,
+    [data-state="redirecting"][data-platform="android"] .badge-apple { display: none; }
+
+    .fine {
+      font-size: var(--fs-caption);
+      color: rgba(255, 255, 255, 0.75);
+      margin: var(--sp-lg) 0 0;
+    }
+
+    .hero-visual { flex: 0 1 260px; }
+    .hero-visual img {
+      width: 260px;
+      height: 260px;
+      object-fit: contain;
+      filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.18));
+    }
+
+    /* ---------- footer ---------- */
+    footer.site-footer {
+      background: var(--green-shade8);
+      padding: var(--sp-xl) var(--sp-xl) var(--sp-xxl);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--sp-lg);
+      text-align: center;
+    }
+    footer.site-footer .foot-links {
+      display: flex;
+      gap: var(--sp-xl);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    footer.site-footer .foot-links a { color: rgba(255, 255, 255, 0.7); font-size: var(--fs-caption); }
+    footer.site-footer .foot-links a:hover { color: var(--white); }
+    footer.site-footer .copyright { font-size: var(--fs-caption); color: rgba(255, 255, 255, 0.4); }
+
+    /* ---------- responsive ---------- */
+    @media (max-width: 800px) {
+      .hero { padding-top: 48px; padding-bottom: 48px; }
+      .hero-inner { gap: var(--sp-xxl); flex-direction: column-reverse; text-align: center; }
+      .hero-copy, .hero-visual { flex-basis: auto; }
+      .badges { justify-content: center; }
+      .spinner { margin-left: auto; margin-right: auto; }
+      .hero p.lead { margin-left: auto; margin-right: auto; }
+      .hero h1 { font-size: 26px; }
+      .hero-visual img { width: 180px; height: 180px; }
+    }
+    @media (max-width: 400px) {
+      .hero h1 { font-size: 22px; }
+      .hero p.lead { font-size: var(--fs-body); }
+      .hero-visual img { width: 150px; height: 150px; }
+      :root { --badge-h: 44px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .settle { animation: none; opacity: 1; }
+      .spinner { animation-duration: 2.4s; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="https://bearlyinvested.app/">
+      <img src="/assets/logo.png" alt="Bearly Invested" />
+    </a>
+  </header>
+
+  <main class="hero">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <div class="spinner" aria-hidden="true"></div>
+        <h1 class="settle" style="animation-delay:0.1s;" id="title">The stock market, made simple.</h1>
+        <p class="lead settle" style="animation-delay:0.15s;" id="lead">
+          A 5-question quiz a day, real S&amp;P 500 data, and a bear who explains
+          it all in plain English. Free on the App Store and Google Play.
+        </p>
+        <div class="badges settle" style="animation-delay:0.25s;" aria-live="polite">
+          <a class="badge badge-apple" id="badge-apple" href="https://apps.apple.com/app/id6793846431">
+            <img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us" alt="Download on the App Store" />
+          </a>
+          <a class="badge badge-google" id="badge-google" href="https://play.google.com/store/apps/details?id=com.bearlyinvested.app">
+            <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" />
+          </a>
+        </div>
+        <p class="fine settle" style="animation-delay:0.3s;">Free to download · Not financial advice</p>
+      </div>
+      <div class="hero-visual settle" style="animation-delay:0.2s;" aria-hidden="true">
+        <img src="/assets/bear-running.png" alt="" />
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <nav class="foot-links">
+      <a href="https://bearlyinvested.app/privacy">Privacy Policy</a>
+      <a href="https://bearlyinvested.app/terms">Terms of Service</a>
+    </nav>
+    <div class="copyright">© 2026 Bearly Invested · Not financial advice</div>
+  </footer>
+
+  <script>
+    (function () {
+      var bi = window.__bi;
+      if (!bi) return;
+      var root = document.documentElement;
+      var storeName = bi.platform === 'ios' ? 'the App Store' : 'Google Play';
+
+      // Badges carry the campaign link too, so a manual tap is still attributed.
+      document.getElementById('badge-apple').href = bi.links.ios;
+      document.getElementById('badge-google').href = bi.links.android;
+
+      var COPY = {
+        redirecting: {
+          title: 'Taking you to ' + storeName + '…',
+          lead: 'Hang tight, the bear is on it. If nothing happens, tap the button below.'
+        },
+        stuck: {
+          title: "Hmm, that didn't open on its own.",
+          lead: 'No worries. Tap below to get Bearly Invested free on ' + storeName + '.'
+        }
+      };
+
+      function render(state) {
+        root.setAttribute('data-state', state);
+        var c = COPY[state];
+        if (!c) return;
+        document.getElementById('title').textContent = c.title;
+        document.getElementById('lead').textContent = c.lead;
+      }
+
+      if (root.getAttribute('data-state') !== 'redirecting') return;
+      render('redirecting');
+
+      // If the store app opened, this page is hidden. Still visible after a
+      // moment (blocked in-app browser, confirmation prompt, etc.) or visible
+      // again after coming back — swap to the manual-tap copy.
+      var stuck = function () { if (document.visibilityState === 'visible') render('stuck'); };
+      setTimeout(stuck, 2500);
+      document.addEventListener('visibilitychange', stuck);
+      window.addEventListener('pageshow', function (e) { if (e.persisted) render('stuck'); });
+    })();
+  </script>
+</body>
+</html>
